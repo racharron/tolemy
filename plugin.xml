@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension-point id="tolemy.rr" name="Reflective Refactoring" schema="schema/tolemy.rr.exsd"/>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:#CompilationUnitEditorContext?after=additions">
+         <menu
+               id="tolemy.ui.javaContextMenu"
+               label="tolemy">
+            <dynamic
+                  class="tolemy.ui.JavaContextMenu"
+                  id="tolemy.ui.javaContextMenu.dynamic">
+            </dynamic>
+         </menu>
+      </menuContribution>
+   </extension>
+
+</plugin>
