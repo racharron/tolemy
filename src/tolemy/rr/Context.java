@@ -29,7 +29,7 @@ import org.eclipse.jdt.core.dom.*;
  */
 public class Context {
 	
-	HashSet<CompilationUnit> compilationUnits;
+	HashSet<CompilationUnit> compilationUnits = new HashSet<>();
 	ArrayList<ASTNode> relevantASTs;
 	ArrayList<IBinding> relevantBindings;
 	
@@ -86,7 +86,7 @@ public class Context {
 			}
 			MyASTRequestor requestor = new MyASTRequestor();
 			parser.createASTs(
-					(ICompilationUnit[])sources.toArray(), 
+					sources.toArray(new ICompilationUnit[] {}), 
 					new String[] {}, 
 					requestor,
 					null);
