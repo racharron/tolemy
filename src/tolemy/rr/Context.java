@@ -10,13 +10,12 @@ import tolemy.internal.InsideGatherer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
@@ -32,11 +31,12 @@ public class Context {
 	HashSet<CompilationUnit> compilationUnits = new HashSet<>();
 	ArrayList<ASTNode> relevantASTs;
 	ArrayList<IBinding> relevantBindings;
+	HashSet<RPackage> topLevelPackages = new HashSet<>();
 	
 	/**
 	 * 
 	 */
-	public Context(IDocument document, ITextSelection selection) throws ContextCreationException {
+	public Context(IProject project, IDocument document, ITextSelection selection) throws ContextCreationException {
 		PackageDeclaration selectedPackage;
 		TypeDeclaration publicType;
 		{
@@ -47,51 +47,56 @@ public class Context {
 			selectedPackage = selectedCU.getPackage();
 			publicType = getPublicType(selectedCU);
 		}
-		
 		ASTParser parser = ASTParser.newParser(AST.JLS10);
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		parser.setResolveBindings(true);
 		ArrayList<ICompilationUnit> sources = new ArrayList<ICompilationUnit>();
-		for (IProject proj : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-			IJavaProject ijp = JavaCore.create(proj);
-			parser.setProject(ijp);
-			IPackageFragment[] fragments;
-			try {
-				 fragments = ijp.getPackageFragments();
-			} catch (JavaModelException jme) {
-				throw new ContextCreationException("Unable to get packages.", jme);
-			}
-			for (IPackageFragment fragment : fragments) {
-				try {
-					 sources.addAll(Arrays.asList(fragment.getCompilationUnits()));
-				} catch (JavaModelException jme) {
-					throw new ContextCreationException("Unable to get compilation units.", jme);
-				}
-			} 
-			class MyASTRequestor extends ASTRequestor {
-				boolean foundSelectedCompilationUnit = false;
-				@Override
-				public void acceptAST(ICompilationUnit source, CompilationUnit ast) {
-					CompilationUnit cu = (CompilationUnit)ast;
-					compilationUnits.add(cu);
-					if (eq(selectedPackage, ast.getPackage()) && eq(publicType, getPublicType(cu))) {
-						assert !foundSelectedCompilationUnit;
-						foundSelectedCompilationUnit = true;
-						InsideGatherer ig = new InsideGatherer(selection.getOffset());
-						cu.accept(ig);
-						relevantASTs = ig.relevantASTs;
-						relevantBindings = ig.relevantBindings;
-					}
-				}
-			}
-			MyASTRequestor requestor = new MyASTRequestor();
-			parser.createASTs(
-					sources.toArray(new ICompilationUnit[] {}), 
-					new String[] {}, 
-					requestor,
-					null);
-			assert requestor.foundSelectedCompilationUnit;
+		IJavaProject ijp = JavaCore.create(project);
+		parser.setProject(ijp);
+		IPackageFragment[] fragments;
+		try {
+			 fragments = ijp.getPackageFragments();
+		} catch (JavaModelException jme) {
+			throw new ContextCreationException("Unable to get packages.", jme);
 		}
+		for (IPackageFragment fragment : fragments) {
+			try {
+				 sources.addAll(Arrays.asList(fragment.getCompilationUnits()));
+			} catch (JavaModelException jme) {
+				throw new ContextCreationException("Unable to get compilation units.", jme);
+			}
+		} 
+		class MyASTRequestor extends ASTRequestor {
+			boolean foundSelectedCompilationUnit = false;
+			@Override
+			public void acceptAST(ICompilationUnit source, CompilationUnit ast) {
+				CompilationUnit cu = (CompilationUnit)ast;
+				compilationUnits.add(cu);
+				if (eq(selectedPackage, ast.getPackage()) && eq(publicType, getPublicType(cu))) {
+					assert !foundSelectedCompilationUnit;
+					foundSelectedCompilationUnit = true;
+					InsideGatherer ig = new InsideGatherer(selection.getOffset());
+					cu.accept(ig);
+					relevantASTs = ig.relevantASTs;
+					relevantBindings = ig.relevantBindings;
+				}
+			}
+		}
+		MyASTRequestor requestor = new MyASTRequestor();
+		parser.createASTs(
+				sources.toArray(new ICompilationUnit[] {}), 
+				new String[] {}, 
+				requestor,
+				null);
+		assert requestor.foundSelectedCompilationUnit;
+	}
+	
+	/**
+	 * @return the package being edited.
+	 */
+	public RPackage getCurrentPackage() {
+		//	TODO: finish
+		return null;
 	}
 	
 	TypeDeclaration getPublicType(CompilationUnit cu) {
