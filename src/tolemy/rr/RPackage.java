@@ -26,6 +26,9 @@ public class RPackage {
 					+ RPackage.this.toString()
 					+ " which already exists.";
 		}
+		public RPackage getPreexisting() {
+			return RPackage.this;
+		}
 	}
 	
 	
@@ -54,7 +57,7 @@ public class RPackage {
 	 * @param parent the parent of the package.  
 	 * @param name the name of the package
 	 */
-	RPackage(RPackage parent, String name) {
+	public RPackage(RPackage parent, String name) {
 		this.parent = parent;
 		this.name = name;
 	}

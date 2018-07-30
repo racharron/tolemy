@@ -13,8 +13,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
@@ -52,6 +50,7 @@ public class Context {
 		parser.setResolveBindings(true);
 		ArrayList<ICompilationUnit> sources = new ArrayList<ICompilationUnit>();
 		IJavaProject ijp = JavaCore.create(project);
+		assert ijp != null;
 		parser.setProject(ijp);
 		IPackageFragment[] fragments;
 		try {
@@ -89,6 +88,7 @@ public class Context {
 				requestor,
 				null);
 		assert requestor.foundSelectedCompilationUnit;
+		
 	}
 	
 	/**
